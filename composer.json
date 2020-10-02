@@ -5,6 +5,7 @@
     "description": "Wintouch Api",
     "keywords": ["invoice", "online", "package"],
     "homepage": "https://github.com/vgspedro/wintouchapi",
+    "minimum-stability": "stable",
     "license": "MIT",
     "require": {
         "php": ">=7.0"

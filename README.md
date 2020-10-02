@@ -41,17 +41,10 @@ class InvoicingWintouchController extends AbstractController
     {
       return $this->render('admin/payment/native.html', [
       	
-		//Call the methods from the Service $moloni;
+		//Call the methods from the Service $wintouch;
 
-      	'moloni' => [
-      		'moloni_get_taxes' => $moloni->getTaxes(),
-      		'moloni_set_taxes' => $moloni->setTax($tax),
-      		'moloni_update_taxes' => $moloni->updateTax($tax_up),
-      		'moloni_delete_tax' => $moloni->deleteTax(2000939),
-      		'moloni_get_countries' => $moloni->getCountries(),
-      		'moloni_get_languages' => $moloni->getLanguages(),
-      		'moloni_get_currencies' => $moloni->getCurrencies(),
-      		'moloni_get_fiscal_zones' => $moloni->getFiscalZones(1)
+      	'wintouch' => [
+      		'wintouch_get_customer' => $wintouch->getCustomer(),
             ]
         ]);
     }
@@ -71,9 +64,8 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 use \VgsPedro\WintouchApi\Authentication;
 use \VgsPedro\WintouchApi\Classes\Customer;
-use \VgsPedro\WintouchApi\Classes\DeliveryMethods;
 
-class InvoiceMoloni
+class InvoiceWintouch
 {
 
 	private $credencials;
