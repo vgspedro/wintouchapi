@@ -5,31 +5,31 @@ namespace VgsPedro\WintouchApi;
 class Authentication
 {
 
-	private $company_id;
+	private $user_credentials;
 
-    public function getCompanyId()
+    public function getUserCredentials()
     {
-        return $this->company_id;
+        return $this->user_credentials;
     }
 
-    public function setCompanyId(int $company_id = 0)
+    public function setUserCredentials(string $user_credentials = null)
     {
-        $this->company_id = $company_id;
+        $this->user_credentials = $user_credentials;
     }
 
- 	private $access_token;
+    private $api_version;
 
-    public function getAccessToken()
+    public function getApiVersion()
     {
-        return $this->access_token;
+        return $this->api_version;
     }
 
-    public function setAccessToken(string $access_token = null)
+    public function setApiVersion(string $api_version = null)
     {
-        $this->access_token = $access_token;
+        $this->api_version = $api_version;
     }
 
- 	private $url;
+    private $urls;
 
     public function getUrl()
     {
@@ -41,88 +41,100 @@ class Authentication
         $this->url = $url;
     }
 
-	private $client_id;
+    private $authorization;
 
-    public function getClientId()
+    public function getAuthorization()
     {
-        return $this->client_id;
+        return $this->authorization;
     }
 
-    public function setClientId(string $client_id = null)
+    public function setAuthorization(string $authorization = null)
     {
-        $this->client_id = $client_id;
+        $this->authorization = $authorization;
     }
 
- 	private $password;
+    private $x_current_enterprise;
 
-    public function getPassword()
+    public function getXCurrentEnterprise()
     {
-        return $this->password;
+        return $this->x_current_enterprise;
     }
 
-    public function setPassword(string $password = null)
+    public function setXCurrentEnterprise(string $x_current_enterprise = null)
     {
-        $this->password = $password;
+        $this->x_current_enterprise = $x_current_enterprise;
     }
 
- 	private $username;
-
-    public function getUsername()
-    {
-        return $this->username;
-    }
-
-    public function setUsername(string $username = null)
-    {
-        $this->username = $username;
-    }
-
-	private $client_secret;
-
-    public function getClientSecret()
-    {
-        return $this->client_secret;
-    }
-
-    public function setClientSecret(string $client_secret = null)
-    {
-        $this->client_secret = $client_secret;
-    }
-
-    /**
-    *Get the current path for request
-    *@param string action 
-    *@return string 
-    **/
-    protected function getPath(string $action){
-        return  $this->getUrl().''.static::ENTITY.''.$action.''.static::ACCESS.''.$this->getAccessToken();
+    public function getPath(string $folder = null){
+        return  $this->getUrl().''.$this->getApiVersion().''.$folder;
     }
 
 	/**
-	* Get Tokens to allow data transaction of Company
+	* Get Token to allow data transaction
 	* @return json 
-	* https://www.moloni.pt/dev/?action=getApiTxtDetail&id=3
 	**/
-
-	public function login()
+	public function logins()
 	{
-		$url = $this->getUrl().'/grant/?grant_type=password&client_id='.$this->getClientId().'&client_secret='.$this->getClientSecret().'&username='.$this->getUsername().'&password='.$this->getPassword();
-
-		return $this->curl($url);
+        $url = $this->getPath().'logins';
+        $type = 'POST'; 
+        return $this->curl($url, $type, [
+            'userCredentials' => $this->getUserCredentials() // Token
+        ]);
 	}
 
-	protected function curl(string $url, $post = null)
+    /**
+    * Get a new Token to allow data transaction
+    * @return json 
+    **/
+    public function loginsRenew()
+    {
+        $url = $this->getPath().'logins/renew';
+        $type = 'POST'; 
+        return $this->curl($url, $type, [
+            'Autorization' => $this->getAuthorization(), //Api Key
+            'x-current-enterprise' => $this->getXCurrentEnterprise() //User's enterprise
+        ]);
+    }
+
+
+    /**
+    * Get Token to allow data transaction
+    * @return json 
+    **/
+    public function loginsCheck()
+    {
+        $url = $this->getPath().'logins/check';
+        $type = 'POST'; 
+        return $this->curl($url, $type, [
+            'userCredentials' => $this->getUserCredentials() //Token
+        ]);
+    }
+
+	protected function curl(string $url, $type = null, $data = null)
 	{
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 
-		if (is_array($post)){
-			$fields = (is_array($post)) ? http_build_query($post) : $post;
+		if (is_array($data) && $type == 'POST'){
+			$fields = (is_array($data)) ? http_build_query($data) : $data;
 			curl_setopt($ch, CURLOPT_POST, 1);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
 		}
+
+        if (is_array($data) && $type == 'DELETE'){
+            $fields = (is_array($data)) ? http_build_query($data) : $data;
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        }
+
+        if (is_array($data) && $type == 'PUT'){
+            $fields = (is_array($data)) ? http_build_query($data) : $data;
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        }
 
 		// Check if any error occurred
 		if (curl_errno($ch)){
@@ -133,60 +145,11 @@ class Authentication
 
 		$result = curl_exec($ch);
 		curl_close($ch);
- 		
+ 	
+
  		$r = json_decode($result);
 		//Check if user validation is wrong
-		return isset($r->error) ? $r->error : $r;
+		return $r; // isset($r->error) ? $r->error : $r;
     }
 
-
-
-    /**
-    *Future development ?
-    *Get code errors and show info to user
-    **/
-    private function translateMessage(array $informations = []){
-        
-        if(is_string($informations[0])){
-
-        $r = [];
-
-        foreach ($informations as $info)
-        {
-            switch ($info) {
-                case "1 name":
-                    $r[]= "1 name = Campo nome não pode estar em branco";
-                    break;
-                case "1 number":
-                    $r[] = "1 number = Campo number não pode estar em branco";
-                    break;
-                case "2 maturity_date_id 1 0":
-                    $r[] = "2 maturity_date_id 1 0 = Defina um prazo de vencimento nas configurações do plugin";
-                    break;
-                case "2 unit_id 1 0":
-                    $r[] = "2 maturity_unit_id 1 0 = Unidade de medida errada";
-                    break;
-                case "1 exemption_reason":
-                    $r[] = "1 exemption_reason = Um dos artigos requer uma razão de isenção";
-                    break;
-                case "5 exemption_reason":
-                    $r[] = "5 exemption_reason = Um dos artigos não tem uma razão de isenção definida";
-                    break;
-                case "5 document_set_id":
-                    $r[] = "5 document_set_id = Não está definida a série onde quer emitir o documento";
-                    break;
-                case "2 price 0 null null 0":
-                    $r[] = "2 price 0 null null 0 = Um dos artigos tem o preço igual a 0";
-                    break;
-                case "2 category_id 1 0":
-                    $r[] = "2 category_id 1 0 = Um dos artigos não tem uma categoria definida.";
-                    break;
-            }
-        }
-
-        return $r;
-    }
-    
-    return $informations;
-    }
 }

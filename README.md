@@ -44,7 +44,7 @@ class InvoicingWintouchController extends AbstractController
 		//Call the methods from the Service $wintouch;
 
       	'wintouch' => [
-      		'wintouch_get_customer' => $wintouch->getCustomer(),
+      		'wintouch' => $wintouch->start(),
             ]
         ]);
     }

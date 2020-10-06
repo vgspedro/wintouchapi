@@ -8,13 +8,7 @@ use \VgsPedro\WintouchApi\Authentication;
  * A class for CRUD the Users requests
  */
 
-class Users extends Authentication{
-
-	/** @const entity api url */
-	const ENTITY = '/users/';
-	/** @const access api url */
-	const ACCESS = '/?access_token=';
-	
+class Entities extends Authentication{
 	/**
 	User array data structure
 	[
@@ -139,17 +133,7 @@ class Users extends Authentication{
     }
 
 
-    /**
-    * List all active and inactive Users
-    * @return json 
-    **/
-    public function listAll()
-    {
-        return parent::curl(parent::getPath('users'), 'GET', [
-            'Autorization' => $this->getAuthorization(), //Api Key
-            'x-current-enterprise' => $this->getXCurrentEnterprise() //User's enterprise
-        ]);
-    }
+
 
     /**
     * Create a new user in database
@@ -157,7 +141,7 @@ class Users extends Authentication{
     **/
     public function insert()
     {
-        return parent::curl(parent::getPath('users'), 'POST', [
+        return parent::curl(parent::getPath('users'), [
             'setCode' => $this->getCode(),
             'TenantID' => $this->getTenantId(),
             'LoggedinTimestamp' => $this->getLoggedInTimestamp(),
