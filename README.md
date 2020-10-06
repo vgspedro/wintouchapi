@@ -79,14 +79,14 @@ class InvoiceWintouch
 
 		if($environment->get("kernel.environment") == 'prod'){
 			$this->credencials['company_id'] = 5 ; //Change according to specific user //  Company ID, Provided by Moloni
-		 	$this->credencials['url'] = 'https://api.wintouchcloud.com/api/'; // Url to make request, sandbox or live (sandbox APP_ENV=dev or test) (live APP_ENV=prod)
+		 	$this->credencials['url'] = 'https://api.moloni.pt/v1'; // Url to make request, sandbox or live (sandbox APP_ENV=dev or test) (live APP_ENV=prod)
 		}
 		
 		else{
 			$this->credencials['company_id'] = 5 ; //Change according to specific user // Company ID, Provided by Moloni
-		 	$this->credencials['url'] = 'https://api.wintouchcloud.com/api/'; // Url to make request, sandbox or live (sandbox APP_ENV=dev or test) (live APP_ENV=prod)
+		 	$this->credencials['url'] = 'https://api.moloni.pt/sandbox'; // Url to make request, sandbox or live (sandbox APP_ENV=dev or test) (live APP_ENV=prod)
 		}
-		$this->credencials['api_version'] = 'v1/';
+		
 		$this->credencials['client_id'] = ''; // Client ID, Provided by Moloni
 		$this->credencials['client_secret'] = ''; // Client Secret, Provided by Moloni
     	$this->credencials['opendoc'] = true; // On generate invoice set to provisory or definitiv
@@ -119,7 +119,7 @@ class InvoiceWintouch
 		$auth->setUsername($this->credencials['username']);
 		$auth->setClientSecret($this->credencials['client_secret']);
 		$auth->setCompanyId($this->credencials['company_id']);
-		$auth->setUrl($this->credencials['url'].''.$this->credencials['api_version']);
+		$auth->setUrl($this->credencials['url']);
 
 		$token = $auth->login();
 		
@@ -141,59 +141,189 @@ class InvoiceWintouch
 	}
 
 	#####
-	## USERS METHODS
+	## TAXES METHODS
 	#####
-	
-	/**
-	* Create a new user in the database
-	* @param array $a User information 
-	* @return json 
-	**/
-	public function setUser(array $a = []){
-		if($this->start()){
-			$c = new User();
-			$c->setAccessToken($this->credencials['token']['access_token']);
-			$c->setUrl($this->credencials['url']);
-			$c->setCompanyId($this->credencials['company_id']);
-			$c->setVat($a['vat']);
-			$c->setNumber($a['number']);
-			$c->setName($a['name']);
-			$c->setLanguageId($a['language_id']);
-			$c->setAddress($a['address']);
-			$c->setZipCode($a['zip_code']);
-			$c->setCity($a['city']);
-			$c->setCountryId($a['country_id']);
-			$c->setEmail($a['email']);
-			$c->setWebsite($a['website']);
-			$c->setPhone($a['phone']);
-			$c->setFax($a['fax']);
-			$c->setContactName($a['contact_name']);
-			$c->setContactEmail($a['contact_email']);
-			$c->setContactPhone($a['contact_phone']);
-			$c->setNotes($a['notes']);
-			$c->setSalesmanId($a['salesman_id']);
-			$c->setPriceClassId($a['price_class_id']);
-			$c->setMaturityDateId($a['maturity_date_id']);
-			$c->setPaymentDay($a['payment_day']);
-			$c->setDiscount($a['discount']);
-			$c->setCreditLimit($a['credit_limit']);
-			$c->setCopiesDocumentTypeId($a['copies']['document_type_id']);
-			$c->setCopiesCopies($a['copies']['copies']);
-			$c->setPaymentMethodId($a['payment_method_id']);
-			$c->setDeliveryMethodId($a['delivery_method_id']);
-			$c->setFieldNotes($a['field_notes']);
 
-			return $c->insert();
+	/**
+	* List Taxes of Company 
+	* @return json 
+	* https://www.moloni.pt/dev/index.php?action=getApiDocDetail&id=262
+	**/
+	public function getTaxes()
+	{
+		if($this->start()){
+			$t = new Taxes();
+			$t->setCompanyId($this->credencials['company_id']);
+			$t->setAccessToken($this->credencials['token']['access_token']);
+			$t->setUrl($this->credencials['url']);
+	
+			return $t->getAll();
 		}
-		
 		else
 			return false;
 	}
 
+	/**
+	* Create Tax in the Company 
+	* @param array $t tax information
+	* @return json 
+	* https://www.moloni.pt/dev/index.php?action=getApiDocDetail&id=263
+	**/
+	public function setTax(array $t = [])
+	{
+		if($this->start()){
+			$t = new Taxes();
+			$t->setCompanyId($this->credencials['company_id']);
+			$t->setAccessToken($this->credencials['token']['access_token']);
+			$t->setUrl($this->credencials['url']);
+			$t->setName($t['name']);
+			$t->setValue($t['value']);
+			$t->setType($t['type']);
+			$t->setSaftType($t['saft_type']);
+			$t->setVatType($t['vat_type']);
+			$t->setStampTax($t['stamp_tax']);
+			$t->setExemptionReason($t['exemption_reason']);
+			$t->setFiscalZone($t['fiscal_zone']);
+			$t->setActivByDefault($t['active_by_default']);
 
+			return $t->insert();
+		}
+		else
+			return false;
+	}
 
+	/**
+	* Update Tax by Id
+	* @param array $t Tax information // $this->getTaxes()
+	* @return json
+	* https://www.moloni.pt/dev/index.php?action=getApiDocDetail&id=264
+	**/
+	public function updateTax(array $t = [])
+	{
+		if($this->start()){
+			$t = new Taxes();
+			$t->setCompanyId($this->credencials['company_id']);
+			$t->setAccessToken($this->credencials['token']['access_token']);
+			$t->setUrl($this->credencials['url']);
+			$t->setId($t['tax_id']);
+			$t->setName($t['name']);
+			$t->setValue($t['value']);
+			$t->setType($t['type']);
+			$t->setSaftType($t['saft_type']);
+			$t->setVatType($t['vat_type']);
+			$t->setStampTax($t['stamp_tax']);
+			$t->setExemptionReason($t['exemption_reason']);
+			$t->setFiscalZone($t['fiscal_zone']);
+			$t->setActivByDefault($t['active_by_default']);
 
+			return $t->update();
+		}
+		else
+			return false;
+	}
 
+	/**
+	* Delete a Tax from the Company 
+	* @param int $tax_id // $this->getTaxes()
+	* @return json
+	* https://www.moloni.pt/dev/index.php?action=getApiDocDetail&id=265
+	**/
+	public function delete(int $tax_id = 0)
+	{
+		if($this->start()){
+			$t = new Taxes();
+			$t->setCompanyId($this->credencials['company_id']);
+			$t->setAccessToken($this->credencials['token']['access_token']);
+			$t->setUrl($this->credencials['url']);
+			$t->setId($t['tax_id']);
+
+			return $t->delete();
+		}
+		else
+			return false;
+	}
+
+	#####
+	## GLOBALDATA METHODS
+	#####
+
+	/**
+	* List Countries available in Moloni
+	* @return json
+	* https://www.moloni.pt/dev/index.php?action=getApiDocSub&s_id=68
+	**/
+	public function getCountries()
+	{
+		if($this->start()){
+			$g = new GlobalData();
+			$g->setAccessToken($this->credencials['token']['access_token']);
+			$g->setUrl($this->credencials['url']);
+
+			return $g->getCountries();
+		}
+		else
+			return false;
+	}
+
+	/**
+	* List Languages available in Moloni
+	* @return json
+	* https://www.moloni.pt/dev/index.php?action=getApiDocSub&s_id=70
+	**/
+	public function getLanguages()
+	{
+		if($this->start()){
+			$g = new GlobalData();
+			$g->setAccessToken($this->credencials['token']['access_token']);
+			$g->setUrl($this->credencials['url']);
+
+			return $g->getLanguages();
+		}
+		else
+			return false;
+	}
+
+	/**
+	* List Currencies available in Moloni
+	* @return json 
+	* https://www.moloni.pt/dev/index.php?action=getApiDocSub&s_id=101
+	**/
+	public function getCurrencies()
+	{
+		if($this->start()){
+			$g = new GlobalData();
+			$g->setAccessToken($this->credencials['token']['access_token']);
+			$g->setUrl($this->credencials['url']);
+
+			return $g->getCurrencies();
+		}
+		else
+			return false;
+	}
+
+	/**
+	* List of Fiscal Zones available in Moloni
+	* @param int $id country_id  // $this->getCountries()
+	* @return json
+	* https://www.moloni.pt/dev/index.php?action=getApiDocSub&s_id=69
+	**/
+	public function getFiscalZones(int $id = 0)
+	{
+		if($this->start()){
+			$g = new GlobalData();
+			$g->setAccessToken($this->credencials['token']['access_token']);
+			$g->setUrl($this->credencials['url']);
+			$g->setCountryId($id);
+
+			return $g->getFiscalZones();
+		}
+		else
+			return false;
+	}
+
+	#####
+	## CUSTOMERS METHODS
+	#####
 
 	/**
 	* Count Customers of the Company 
@@ -206,7 +336,7 @@ class InvoiceWintouch
 			$c = new Customer();
 			$c->setAccessToken($this->credencials['token']['access_token']);
 			$c->setUrl($this->credencials['url']);
-			$c->setId($this->credencials['company_id']);
+			$c->setCompanyId($this->credencials['company_id']);
 
 			return $c->getCounter();
 		}
@@ -323,6 +453,53 @@ class InvoiceWintouch
 			return $c->update();
 		}
 
+		else
+			return false;
+	}
+
+	/**
+	* Create Customer in the Company 
+	* @param array $a Customer information 
+	* @return json 
+	* https://www.moloni.pt/dev/index.php?action=getApiDocDetail&id=204
+	**/
+	public function setCustomer(array $a = []){
+		if($this->start()){
+			$c = new Customer();
+			$c->setAccessToken($this->credencials['token']['access_token']);
+			$c->setUrl($this->credencials['url']);
+			$c->setCompanyId($this->credencials['company_id']);
+			$c->setVat($a['vat']);
+			$c->setNumber($a['number']);
+			$c->setName($a['name']);
+			$c->setLanguageId($a['language_id']);
+			$c->setAddress($a['address']);
+			$c->setZipCode($a['zip_code']);
+			$c->setCity($a['city']);
+			$c->setCountryId($a['country_id']);
+			$c->setEmail($a['email']);
+			$c->setWebsite($a['website']);
+			$c->setPhone($a['phone']);
+			$c->setFax($a['fax']);
+			$c->setContactName($a['contact_name']);
+			$c->setContactEmail($a['contact_email']);
+			$c->setContactPhone($a['contact_phone']);
+			$c->setNotes($a['notes']);
+			$c->setSalesmanId($a['salesman_id']);
+			$c->setPriceClassId($a['price_class_id']);
+			$c->setMaturityDateId($a['maturity_date_id']);
+			$c->setPaymentDay($a['payment_day']);
+			$c->setDiscount($a['discount']);
+			$c->setCreditLimit($a['credit_limit']);
+			$c->setCopiesDocumentTypeId($a['copies']['document_type_id']);
+			$c->setCopiesCopies($a['copies']['copies']);
+			$c->setPaymentMethodId($a['payment_method_id']);
+			$c->setDeliveryMethodId($a['delivery_method_id']);
+			$c->setFieldNotes($a['field_notes']);
+
+			return $c->insert();
+		}
+		
 		else
 			return false;
 	}

@@ -1,6 +1,6 @@
 <?php
 
-namespace VgsPedro\MoloniApi;
+namespace VgsPedro\WintouchApi;
 
 class Authentication
 {
