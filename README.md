@@ -7,7 +7,7 @@
 
 This library is installed via [Composer](http://getcomposer.org/).
 
-composer require vgspedro/wintouchapi:dev-master
+composer require vgspedro/wintouchapi:dev-main
 
 ## Symfony framework
 
