@@ -11,15 +11,14 @@ use \VgsPedro\WintouchApi\Authentication;
 class Users extends Authentication{
 
 	/** @const entity api url */
-	const ENTITY = '/users/';
-	/** @const access api url */
-	const ACCESS = '/?access_token=';
-	
+	const ENTITY = 'users/';
+
 	/**
 	User array data structure
 	[
-		'user_id' => 0, // int required ON UPDATE
-		'code' => 'ADM001', //string required
+		'id' => 0, // int required ON UPDATE
+        'code' => 'ADM001', //string required
+        'name' => '', //string required
 		'tenant_id' => '00000000-0000-0000-0000-000000000000', //string 
         'logged_in_timestamp' => '0001-01-01T00:00:00', // datetime
         'admin_user_security_tokens' => [], //array
@@ -37,9 +36,21 @@ class Users extends Authentication{
         return $this->id;
     }
 
-    public function setId(int $id = 0)
+    public function setId(string $id = '')
     {
         $this->id = $id;
+    }
+
+    private $name;
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name = '')
+    {
+        $this->name = $name;
     }
 
     private $code;
@@ -133,39 +144,78 @@ class Users extends Authentication{
         return $this->is_support_account;
     }
 
-    public function setIsAupportAccount(bool $is_support_account =  false)
+    public function setIsSupportAccount(bool $is_support_account =  false)
     {
         $this->is_support_account = $is_support_account;
     }
 
-
     /**
-    * List all active and inactive Users
+    * List all Users
     * @return json 
     **/
-    public function listAll()
+    public function list()
     {
-        return parent::curl(parent::getPath('users'), 'GET', [
-            'Autorization' => $this->getAuthorization(), //Api Key
-            'x-current-enterprise' => $this->getXCurrentEnterprise() //User's enterprise
-        ]);
+        return parent::curlRequest(parent::getPath(static::ENTITY), 'GET', null);
     }
 
     /**
-    * Create a new user in database
+    * List a User by id
+    * @return json 
+    **/
+    public function listById()
+    {
+        return parent::curlRequest(parent::getPath(static::ENTITY.''.$this->getId()), 'GET', null);
+    }
+
+    /**
+    * Create a User
     * @return json 
     **/
     public function insert()
     {
-        return parent::curl(parent::getPath('users'), 'POST', [
-            'setCode' => $this->getCode(),
+        return parent::curlRequest(parent::getPath(static::ENTITY), 'POST', [
+            'param' => 'user',
+            'ID' => $this->getId(),
+            'Code' => $this->getCode(),
+            'Name' => $this->getName(),
             'TenantID' => $this->getTenantId(),
             'LoggedinTimestamp' => $this->getLoggedInTimestamp(),
             'AdminUserSecurityTokens' => $this->getAdminUserSecurityTokens(),
             'UserEnterprises' => $this->getUserEnterprises(),
             'SystemLogs' => $this->getSystemLogs(),
             'IsHost' => $this->getIsHost(),
-            'IsSupportAccount' => $this->getIsSupportAccount(),
+            'IsSupportAccount' => $this->getIsSupportAccount()
         ]);
     }
+
+    /**
+    * Edit a User
+    * @return json 
+    **/
+    public function edit()
+    {
+        return parent::curlRequest(parent::getPath(static::ENTITY.''.$this->getId()), 'PUT', [
+            'param' => 'user',
+            'ID' => $this->getId(),
+            'Code' => $this->getCode(),
+            'Name' => $this->getName(),
+            'TenantID' => $this->getTenantId(),
+            'LoggedinTimestamp' => $this->getLoggedInTimestamp(),
+            'AdminUserSecurityTokens' => $this->getAdminUserSecurityTokens(),
+            'UserEnterprises' => $this->getUserEnterprises(),
+            'SystemLogs' => $this->getSystemLogs(),
+            'IsHost' => $this->getIsHost(),
+            'IsSupportAccount' => $this->getIsSupportAccount()
+        ]);
+    }
+
+    /**
+    * Delete a User
+    * @return json 
+    **/
+    public function delete()
+    {
+        return parent::curlRequest(parent::getPath(static::ENTITY.''.$this->getId()), 'DELETE', null);
+    }
+
 }

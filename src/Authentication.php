@@ -69,87 +69,65 @@ class Authentication
         return  $this->getUrl().''.$this->getApiVersion().''.$folder;
     }
 
-	/**
-	* Get Token to allow data transaction
-	* @return json 
-	**/
-	public function logins()
-	{
-        $url = $this->getPath().'logins';
-        $type = 'POST'; 
-        return $this->curl($url, $type, [
-            'userCredentials' => $this->getUserCredentials() // Token
-        ]);
-	}
+    protected function getHeader(){
+
+        $header = [];
+        $header[] = 'Content-length: 0';
+        $header[] = 'Content-type: application/json';
+        $header[] = 'Authorization:'.$this->getAuthorization();
+        
+        return $header;
+    }
 
     /**
-    * Get a new Token to allow data transaction
-    * @return json 
+    *@param $url string - the complete path of the request 
+    *@param $type string - Type of request ('POST, GET, PUT, DELETE')
+    *@param $body array - information on class to Edit or Create
+    *@return Array
     **/
-    public function loginsRenew()
-    {
-        $url = $this->getPath().'logins/renew';
-        $type = 'POST'; 
-        return $this->curl($url, $type, [
-            'Autorization' => $this->getAuthorization(), //Api Key
-            'x-current-enterprise' => $this->getXCurrentEnterprise() //User's enterprise
-        ]);
-    }
+    protected function curlRequest(string $url, $type = null, $body = null){
 
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
 
-    /**
-    * Get Token to allow data transaction
-    * @return json 
-    **/
-    public function loginsCheck()
-    {
-        $url = $this->getPath().'logins/check';
-        $type = 'POST'; 
-        return $this->curl($url, $type, [
-            'userCredentials' => $this->getUserCredentials() //Token
-        ]);
-    }
-
-	protected function curl(string $url, $type = null, $data = null)
-	{
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-
-		if (is_array($data) && $type == 'POST'){
-			$fields = (is_array($data)) ? http_build_query($data) : $data;
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-		}
-
-        if (is_array($data) && $type == 'DELETE'){
-            $fields = (is_array($data)) ? http_build_query($data) : $data;
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        switch ($type) {
+            case 'POST':
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $fields = (is_array($body)) ? http_build_query($body) : $body;
+                curl_setopt($ch, CURLOPT_POSTFIELDS, [$fields]);
+                curl_setopt($ch, CURLOPT_POST, 1);
+            break;
+            case 'PUT':
+                $param = str_replace('s/', '', static::ENTITY);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $fields = (is_array($body)) ? http_build_query($body) : $body;
+                curl_setopt($ch, CURLOPT_POSTFIELDS, [$fields]);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+            break;
+            case 'DELETE':
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $fields = (is_array($body)) ? http_build_query($body) : $body;
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+            break;
+            default:
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            break;
         }
 
-        if (is_array($data) && $type == 'PUT'){
-            $fields = (is_array($data)) ? http_build_query($data) : $data;
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        // Check if any error occurred
+        if (curl_errno($ch)){
+            $err = curl_error($ch);
+            curl_close($ch);
+            return $err;
         }
 
-		// Check if any error occurred
-		if (curl_errno($ch)){
-			$err = curl_error($ch);
-			curl_close($ch);
-		   	return $err;
-		}
+        $result = curl_exec($ch);
+        curl_close($ch);
+        $r = json_decode($result);
 
-		$result = curl_exec($ch);
-		curl_close($ch);
- 	
-
- 		$r = json_decode($result);
-		//Check if user validation is wrong
-		return $r; // isset($r->error) ? $r->error : $r;
+        return $r;
     }
+
 
 }
